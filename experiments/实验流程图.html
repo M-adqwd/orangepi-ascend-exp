@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三实验昇腾端部署 · 流程图 / 泳道图 / 数据流图</title>
+<style>
+  :root{
+    --ink:#1c1c1a; --muted:#6b6b66; --faint:#9a9a95; --line:#e6e5e0;
+    --bg:#ffffff; --soft:#fbfbf9;
+    --blue:#185FA5; --blue-bg:#E6F1FB;
+    --purple:#534AB7; --purple-bg:#EEEDFE;
+    --teal:#0F6E56; --teal-bg:#E1F5EE;
+    --gray:#5F5E5A; --gray-bg:#F1EFE8;
+    --amber:#854F0B; --amber-bg:#FAEEDA;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:15px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1240px;margin:0 auto;padding:56px 40px 80px}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:32px;margin-bottom:8px}
+  .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 14px}
+  h1{font-size:30px;font-weight:500;line-height:1.35;margin:0 0 14px;letter-spacing:-.01em}
+  .lede{font-size:15px;color:var(--muted);margin:0;max-width:74ch;line-height:1.8}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+  .chip{font-size:12px;color:var(--muted);background:var(--soft);border:1px solid var(--line);
+        border-radius:100px;padding:4px 12px}
+  .chip b{font-weight:500;color:var(--ink)}
+  section{margin-top:64px}
+  .shead{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+  .snum{font-size:12px;font-weight:500;color:#fff;background:var(--ink);
+        width:22px;height:22px;border-radius:6px;display:flex;align-items:center;
+        justify-content:center;flex:none;letter-spacing:0}
+  h2{font-size:21px;font-weight:500;margin:0;letter-spacing:-.005em}
+  .sdesc{font-size:14px;color:var(--muted);margin:0 0 22px;max-width:80ch;line-height:1.85}
+  figure{margin:0}
+  .canvas{border:1px solid var(--line);border-radius:12px;padding:22px;background:#fff;overflow:hidden}
+  .canvas svg{display:block;width:100%;height:auto}
+  figcaption{font-size:12.5px;color:var(--faint);margin-top:12px;line-height:1.7}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+        background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:26px}
+  .kpi{background:#fff;padding:18px 20px}
+  .kpi .lbl{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .kpi .num{font-size:26px;font-weight:500;line-height:1.15;letter-spacing:-.02em}
+  .kpi .sub{font-size:11.5px;color:var(--faint);margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--muted);font-size:12px;letter-spacing:.02em;
+     background:var(--soft);border-bottom:1px solid var(--line)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px}
+  .ok{color:var(--teal);font-weight:500}
+  .warn{color:var(--amber);font-weight:500}
+  .script{max-width:78ch}
+  .script p{margin:0 0 18px;font-size:15.5px;line-height:1.95}
+  .beat{display:inline-block;font-size:11.5px;font-weight:500;color:var(--purple);
+        background:var(--purple-bg);border-radius:5px;padding:2px 8px;margin-right:10px;
+        vertical-align:2px;letter-spacing:.02em}
+  .beat.gray{color:var(--gray);background:var(--gray-bg)}
+  .pause{color:var(--faint);font-size:13px}
+  .callout{border-left:3px solid var(--amber);background:#fffdf7;padding:16px 20px;
+           border-radius:0 8px 8px 0;margin:22px 0;font-size:14px;line-height:1.85}
+  .callout b{font-weight:500}
+  footer{margin-top:72px;padding-top:24px;border-top:1px solid var(--line);
+         font-size:12.5px;color:var(--faint);line-height:1.9}
+  @media print{
+    body{font-size:12px}
+    .page{max-width:none;padding:0}
+    section{page-break-inside:avoid;margin-top:34px}
+    .canvas{border:none;padding:0}
+    header.hero{page-break-after:avoid}
+  }
+  @media (max-width:760px){
+    .page{padding:32px 18px 56px}
+    h1{font-size:23px}
+    .canvas{padding:12px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <p class="kicker">Orange Pi AI Pro · Ascend 310B4 · 2026-10-19</p>
+  <h1>三个模型，一条部署链</h1>
+  <p class="lede">
+    把三个已经训练好的模型（表格 MLP、图像 CNN、目标检测 YOLO）从 PyTorch 权重一路部署到昇腾 NPU 上，
+    并用原始基线数据验证「编译量化没有破坏精度」。下面是端到端流程图、执行位置泳道图和逐级数据流图。
+  </p>
+  <div class="meta">
+    <span class="chip">板卡 <b>Orange Pi AI Pro</b></span>
+    <span class="chip">NPU <b>Ascend 310B4</b></span>
+    <span class="chip">CANN <b>8.0.0</b></span>
+    <span class="chip">产物 <b>3 个 OM</b></span>
+    <span class="chip">下载归档 <b>702 文件 / 179 MB</b></span>
+  </div>
+</header>
+
+<!-- ============ 图 1 ============ -->
+<section>
+  <div class="shead"><span class="snum">1</span><h2>端到端流程图：三条产线，一条部署链</h2></div>
+  <p class="sdesc">
+    横向是五个阶段，纵向是三个实验。入口完全不同——一张 CSV 表、六百张 X 光片、一份 COCO 预训练权重；
+    但从第三列开始三条线合流：不管前面是 MLP、CNN 还是 YOLO，都必须经过 ONNX 中间表示，
+    再由 ATC 编译成昇腾的 OM 格式。这是昇腾部署唯一的通路。
+  </p>
+  <figure>
+    <div class="canvas">
+      <svg viewBox="0 0 1200 470" role="img" aria-labelledby="f1t f1d">
+        <title id="f1t">三实验端到端流程图</title>
+        <desc id="f1d">三行分别对应实验一、二、三，五列分别为数据任务、权重来源、ONNX 中间表示、ATC 编译、板端 ACL 推理。</desc>
+        <defs>
+          <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#b6b5ae"/>
+          </marker>
+        </defs>
+
+        <g font-family="inherit">
+          <text x="196" y="30" text-anchor="middle" font-size="12" fill="#6b6b66">① 数据 / 任务</text>
+          <text x="416" y="30" text-anchor="middle" font-size="12" fill="#6b6b66">② 权重来源</text>
+          <text x="636" y="30" text-anchor="middle" font-size="12" fill="#534AB7">③ ONNX 中间表示</text>
+          <text x="856" y="30" text-anchor="middle" font-size="12" fill="#534AB7">④ ATC 编译</text>
+          <text x="1076" y="30" text-anchor="middle" font-size="12" fill="#0F6E56">⑤ 板端 ACL 推理</text>
+        </g>
+        <line x1="96" y1="42" x2="1176" y2="42" stroke="#e6e5e0"/>
+        <line x1="96" y1="42" x2="96" y2="392" stroke="#f2f1ec"/>
+        <line x1="516" y1="42" x2="516" y2="392" stroke="#f2f1ec"/>
+
+        <!-- 行标签 -->
+        <g font-family="inherit">
+          <rect x="8" y="56" width="76" height="96" rx="8" fill="#fbfbf9" stroke="#e6e5e0"/>
+          <text x="46" y="96" text-anchor="middle" font-size="12.5" font-weight="500">实验一</text>
+          <text x="46" y="114" text-anchor="middle" font-size="10.5" fill="#9a9a95">信用卡 MLP</text>
+
+          <rect x="8" y="176" width="76" height="96" rx="8" fill="#fbfbf9" stroke="#e6e5e0"/>
+          <text x="46" y="216" text-anchor="middle" font-size="12.5" font-weight="500">实验二</text>
+          <text x="46" y="234" text-anchor="middle" font-size="10.5" fill="#9a9a95">肺炎 CNN</text>
+
+          <rect x="8" y="296" width="76" height="96" rx="8" fill="#fbfbf9" stroke="#e6e5e0"/>
+          <text x="46" y="336" text-anchor="middle" font-size="12.5" font-weight="500">实验三</text>
+          <text x="46" y="354" text-anchor="middle" font-size="10.5" fill="#9a9a95">YOLOv8n</text>
+        </g>
+
+        <!-- 实验一行 -->
+        <g font-family="inherit" font-size="12.5">
+          <rect x="96" y="56" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="110" y="88" font-weight="500">Kaggle creditcard.csv</text>
+          <text x="110" y="111" font-size="11" fill="#6b6b66">284,807 行 × 29 特征</text>
+          <text x="110" y="129" font-size="11" fill="#9a9a95">正例仅 492 条（0.17%）</text>
+
+          <rect x="316" y="56" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="330" y="88" font-weight="500">train_mlp.py</text>
+          <text x="330" y="111" font-size="11" fill="#6b6b66">MLP 29 → 64 → 32 → 1</text>
+          <text x="330" y="129" font-size="11" fill="#9a9a95">云端 PyTorch · RTX 3080 Ti</text>
+
+          <rect x="536" y="56" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="550" y="88" font-weight="500">mlp_fraud_inline.onnx</text>
+          <text x="550" y="111" font-size="11" fill="#534AB7">16 KB · 权重内联</text>
+          <text x="550" y="129" font-size="11" fill="#7F77DD">onnx.helper 按权重重建</text>
+
+          <rect x="756" y="56" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="770" y="88" font-weight="500">atc --soc=310B4</text>
+          <text x="770" y="111" font-size="11" fill="#534AB7">mlp_fraud.om</text>
+          <text x="770" y="129" font-size="11" fill="#7F77DD">57 KB</text>
+
+          <rect x="976" y="56" width="200" height="96" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="990" y="88" font-weight="500">acl_infer_mlp.py</text>
+          <text x="990" y="111" font-size="11" fill="#0F6E56">56,961 条 · 0.207 ms/条</text>
+          <text x="990" y="129" font-size="11" fill="#1D9E75">AUPRC 0.7764</text>
+        </g>
+        <g stroke="#b6b5ae" stroke-width="1.2">
+          <line x1="296" y1="104" x2="310" y2="104" marker-end="url(#ar1)"/>
+          <line x1="516" y1="104" x2="530" y2="104" marker-end="url(#ar1)"/>
+          <line x1="736" y1="104" x2="750" y2="104" marker-end="url(#ar1)"/>
+          <line x1="956" y1="104" x2="970" y2="104" marker-end="url(#ar1)"/>
+        </g>
+
+        <!-- 实验二行 -->
+        <g font-family="inherit" font-size="12.5">
+          <rect x="96" y="176" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="110" y="208" font-weight="500">chest_xray 数据集</text>
+          <text x="110" y="231" font-size="11" fill="#6b6b66">测试 624 张</text>
+          <text x="110" y="249" font-size="11" fill="#9a9a95">PNEUMONIA 390 / NORMAL 234</text>
+
+          <rect x="316" y="176" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="330" y="208" font-weight="500">efficientnet_b0_best.pth</text>
+          <text x="330" y="231" font-size="11" fill="#6b6b66">EfficientNet-B0 · 16.3 MB</text>
+          <text x="330" y="249" font-size="11" fill="#9a9a95">ImageNet 预训练微调</text>
+
+          <rect x="536" y="176" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="550" y="208" font-weight="500">cnn_inline.onnx</text>
+          <text x="550" y="231" font-size="11" fill="#534AB7">16.0 MB · 权重内联</text>
+          <text x="550" y="249" font-size="11" fill="#7F77DD">由 .pth 重新导出</text>
+
+          <rect x="756" y="176" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="770" y="208" font-weight="500">atc --soc=310B4</text>
+          <text x="770" y="231" font-size="11" fill="#534AB7">cnn_pneumonia_b0.om</text>
+          <text x="770" y="249" font-size="11" fill="#7F77DD">14.6 MB</text>
+
+          <rect x="976" y="176" width="200" height="96" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="990" y="208" font-weight="500">acl_infer_cnn.py</text>
+          <text x="990" y="231" font-size="11" fill="#0F6E56">624 张 · 7.17 ms/张</text>
+          <text x="990" y="249" font-size="11" fill="#1D9E75">AUPRC 0.8762</text>
+        </g>
+        <g stroke="#b6b5ae" stroke-width="1.2">
+          <line x1="296" y1="224" x2="310" y2="224" marker-end="url(#ar1)"/>
+          <line x1="516" y1="224" x2="530" y2="224" marker-end="url(#ar1)"/>
+          <line x1="736" y1="224" x2="750" y2="224" marker-end="url(#ar1)"/>
+          <line x1="956" y1="224" x2="970" y2="224" marker-end="url(#ar1)"/>
+        </g>
+
+        <!-- 实验三行 -->
+        <g font-family="inherit" font-size="12.5">
+          <rect x="96" y="296" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="110" y="328" font-weight="500">COCO 预训练权重</text>
+          <text x="110" y="351" font-size="11" fill="#6b6b66">YOLOv8n · 3.2M 参数</text>
+          <text x="110" y="369" font-size="11" fill="#9a9a95">80 类，本实验只取 person</text>
+
+          <rect x="316" y="296" width="200" height="96" rx="10" fill="#fff" stroke="#d9d8d2"/>
+          <text x="330" y="328" font-weight="500">yolov8n.pt</text>
+          <text x="330" y="351" font-size="11" fill="#6b6b66">6.5 MB</text>
+          <text x="330" y="369" font-size="11" fill="#9a9a95">本项目不做重新训练</text>
+
+          <rect x="536" y="296" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="550" y="328" font-weight="500">yolov8n.onnx</text>
+          <text x="550" y="351" font-size="11" fill="#534AB7">12.9 MB</text>
+          <text x="550" y="369" font-size="11" fill="#7F77DD">输出 [1, 84, 8400]</text>
+
+          <rect x="756" y="296" width="200" height="96" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="770" y="328" font-weight="500">atc --soc=310B4</text>
+          <text x="770" y="351" font-size="11" fill="#534AB7">yolov8n.om</text>
+          <text x="770" y="369" font-size="11" fill="#7F77DD">7.2 MB</text>
+
+          <rect x="976" y="296" width="200" height="96" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="990" y="328" font-weight="500">acl_detect_yolo.py</text>
+          <text x="990" y="351" font-size="11" fill="#0F6E56">4/4 人 · 25.9 ms/帧</text>
+          <text x="990" y="369" font-size="11" fill="#1D9E75">摄像头 37.8 FPS</text>
+        </g>
+        <g stroke="#b6b5ae" stroke-width="1.2">
+          <line x1="296" y1="344" x2="310" y2="344" marker-end="url(#ar1)"/>
+          <line x1="516" y1="344" x2="530" y2="344" marker-end="url(#ar1)"/>
+          <line x1="736" y1="344" x2="750" y2="344" marker-end="url(#ar1)"/>
+          <line x1="956" y1="344" x2="970" y2="344" marker-end="url(#ar1)"/>
+        </g>
+
+        <g font-family="inherit">
+          <rect x="96" y="418" width="1080" height="34" rx="8" fill="#fbfbf9"/>
+          <text x="112" y="440" font-size="11.5" fill="#6b6b66">前两列因实验而异</text>
+          <text x="516" y="440" font-size="11.5" fill="#534AB7">→ 从 ONNX 开始，三条线共用同一套工具链（onnx → atc → OM → pyACL）</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      图 1 · 三个实验的入口差异只存在于前两列；ONNX 是唯一的分水岭，也是「模型格式」与「芯片格式」的边界。
+    </figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">2</span><h2>泳道图：每个动作在哪个设备上执行</h2></div>
+  <p class="sdesc">
+    横向是时间顺序，纵向是执行位置。四条泳道分别对应本地开发机、云端训练环境、板载 CPU、以及昇腾 NPU。
+    这张图要回答一个容易被忽略的问题：<b style="font-weight:500">NPU 其实只占整条流水线的一小段</b>——
+    编译、预处理、后处理全在 CPU 侧，这也解释了后面延迟数据的构成。
+  </p>
+  <figure>
+    <div class="canvas">
+      <svg viewBox="0 0 1400 440" role="img" aria-labelledby="f2t f2d">
+        <title id="f2t">部署过程泳道图</title>
+        <desc id="f2d">四条泳道为本地 Windows、云 GPU、Orange Pi CPU、昇腾 NPU，九个步骤跨越泳道流转，首尾在本地往返。</desc>
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8f8e88"/>
+          </marker>
+        </defs>
+
+        <g>
+          <rect x="0" y="44" width="1400" height="90" fill="#fbfbf9"/>
+          <rect x="0" y="134" width="1400" height="90" fill="#ffffff"/>
+          <rect x="0" y="224" width="1400" height="90" fill="#fbfbf9"/>
+          <rect x="0" y="314" width="1400" height="90" fill="#ffffff"/>
+          <line x1="0" y1="134" x2="1400" y2="134" stroke="#ececE7"/>
+          <line x1="0" y1="224" x2="1400" y2="224" stroke="#ececE7"/>
+          <line x1="0" y1="314" x2="1400" y2="314" stroke="#ececE7"/>
+          <line x1="0" y1="404" x2="1400" y2="404" stroke="#ececE7"/>
+        </g>
+
+        <g font-family="inherit">
+          <rect x="0" y="44" width="5" height="90" fill="#378ADD"/>
+          <text x="20" y="82" font-size="13" font-weight="500">本地 Windows</text>
+          <text x="20" y="101" font-size="10.5" fill="#9a9a95">WorkBuddy · SFTP</text>
+
+          <rect x="0" y="134" width="5" height="90" fill="#888780"/>
+          <text x="20" y="172" font-size="13" font-weight="500">云 GPU</text>
+          <text x="20" y="191" font-size="10.5" fill="#9a9a95">RTX 3080 Ti · PyTorch</text>
+
+          <rect x="0" y="224" width="5" height="90" fill="#D85A30"/>
+          <text x="20" y="262" font-size="13" font-weight="500">Orange Pi · CPU</text>
+          <text x="20" y="281" font-size="10.5" fill="#9a9a95">aarch64 · 编译 / 前后处理</text>
+
+          <rect x="0" y="314" width="5" height="90" fill="#534AB7"/>
+          <text x="20" y="352" font-size="13" font-weight="500">昇腾 310B4 · NPU</text>
+          <text x="20" y="371" font-size="10.5" fill="#9a9a95">只做一次前向</text>
+        </g>
+
+        <g font-family="inherit" font-size="10" fill="#b6b5ae" text-anchor="middle">
+          <text x="216" y="36">1</text><text x="354" y="36">2</text><text x="492" y="36">3</text>
+          <text x="630" y="36">4</text><text x="768" y="36">5</text><text x="906" y="36">6</text>
+          <text x="1044" y="36">7</text><text x="1182" y="36">8</text><text x="1320" y="36">9</text>
+        </g>
+
+        <g font-family="inherit" text-anchor="middle">
+          <rect x="160" y="61" width="112" height="56" rx="8" fill="#E6F1FB" stroke="#85B7EB"/>
+          <text x="216" y="85" font-size="11.5" font-weight="500" fill="#0C447C">解包 + 推送</text>
+          <text x="216" y="102" font-size="10" fill="#185FA5">702 文件 / 179 MB</text>
+
+          <rect x="298" y="151" width="112" height="56" rx="8" fill="#F1EFE8" stroke="#B4B2A9"/>
+          <text x="354" y="175" font-size="11.5" font-weight="500" fill="#444441">训练产出权重</text>
+          <text x="354" y="192" font-size="10" fill="#5F5E5A">.pt / .pth 已有</text>
+
+          <rect x="436" y="241" width="112" height="56" rx="8" fill="#FAECE7" stroke="#F0997B"/>
+          <text x="492" y="265" font-size="11.5" font-weight="500" fill="#712B13">校验 ONNX</text>
+          <text x="492" y="282" font-size="10" fill="#993C1D">缺外部权重</text>
+
+          <rect x="574" y="241" width="112" height="56" rx="8" fill="#FAECE7" stroke="#F0997B"/>
+          <text x="630" y="265" font-size="11.5" font-weight="500" fill="#712B13">重建内联</text>
+          <text x="630" y="282" font-size="10" fill="#993C1D">onnx.helper</text>
+
+          <rect x="712" y="241" width="112" height="56" rx="8" fill="#FAECE7" stroke="#F0997B"/>
+          <text x="768" y="265" font-size="11.5" font-weight="500" fill="#712B13">ATC 编译</text>
+          <text x="768" y="282" font-size="10" fill="#993C1D">TE_PARALLEL=1</text>
+
+          <rect x="850" y="241" width="112" height="56" rx="8" fill="#FAECE7" stroke="#F0997B"/>
+          <text x="906" y="265" font-size="11.5" font-weight="500" fill="#712B13">预处理</text>
+          <text x="906" y="282" font-size="10" fill="#993C1D">letterbox · 归一化</text>
+
+          <rect x="988" y="331" width="112" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="1044" y="355" font-size="11.5" font-weight="500" fill="#3C3489">OM 前向</text>
+          <text x="1044" y="372" font-size="10" fill="#534AB7">单次 execute</text>
+
+          <rect x="1126" y="241" width="112" height="56" rx="8" fill="#FAECE7" stroke="#F0997B"/>
+          <text x="1182" y="265" font-size="11.5" font-weight="500" fill="#712B13">后处理 + 指标</text>
+          <text x="1182" y="282" font-size="10" fill="#993C1D">NMS · AUPRC</text>
+
+          <rect x="1264" y="61" width="112" height="56" rx="8" fill="#E6F1FB" stroke="#85B7EB"/>
+          <text x="1320" y="85" font-size="11.5" font-weight="500" fill="#0C447C">拉回 + 出报告</text>
+          <text x="1320" y="102" font-size="10" fill="#185FA5">指标 · 图 · md</text>
+        </g>
+
+        <g stroke="#8f8e88" stroke-width="1.2" fill="none">
+          <path d="M272,100 L428,252" marker-end="url(#ar2)"/>
+          <path d="M410,196 L428,238" marker-end="url(#ar2)"/>
+          <line x1="548" y1="269" x2="570" y2="269" marker-end="url(#ar2)"/>
+          <line x1="686" y1="269" x2="708" y2="269" marker-end="url(#ar2)"/>
+          <line x1="824" y1="269" x2="846" y2="269" marker-end="url(#ar2)"/>
+          <path d="M962,269 L984,329" marker-end="url(#ar2)"/>
+          <path d="M1100,331 L1122,283" marker-end="url(#ar2)"/>
+          <path d="M1238,255 L1260,116" marker-end="url(#ar2)"/>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      图 2 · 泳道 = 执行位置，横向 = 时间顺序。首尾两步是本地与板子之间的往返；中间的 3–8 步全在板上，
+      而其中只有第 7 步真正落到 NPU。中间空白处不是遗漏，而是「谁在等谁」。
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ============ 图 3 ============ -->
+<section>
+  <div class="shead"><span class="snum">3</span><h2>数据流图：每一步的输入、输出与字节量</h2></div>
+  <p class="sdesc">
+    三个实验各一条数据流。每段箭头上标的是实际交接的<b style="font-weight:500">张量形状与字节数</b>，
+    这是理解「为什么实验一 0.2 ms、实验三 26 ms」的关键：数据量差了三个数量级。
+  </p>
+  <figure>
+    <div class="canvas">
+      <svg viewBox="0 0 1240 600" role="img" aria-labelledby="f3t f3d">
+        <title id="f3t">三实验数据流图</title>
+        <desc id="f3d">每个实验四个环节：输入数据、预处理、OM 推理、后处理与输出，箭头上标注张量形状与字节数。</desc>
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#a9a8a2"/>
+          </marker>
+        </defs>
+
+        <!-- ===== 实验一 ===== -->
+        <g font-family="inherit">
+          <text x="20" y="16" font-size="12.5" font-weight="500" fill="#1c1c1a">实验一 · 信用卡欺诈 MLP</text>
+          <text x="188" y="16" font-size="11" fill="#9a9a95">数值表格 → 单条 logit</text>
+
+          <rect x="20" y="64" width="210" height="104" rx="10" fill="#E6F1FB" stroke="#85B7EB"/>
+          <text x="34" y="94" font-size="12.5" font-weight="500" fill="#0C447C">输入数据</text>
+          <text x="34" y="118" font-size="10.5" fill="#185FA5">split_test.npz</text>
+          <text x="34" y="136" font-size="10.5" fill="#185FA5">X 56,961 × 29 float32</text>
+          <text x="34" y="154" font-size="10.5" fill="#378ADD">6.1 MB · 正例 98 条</text>
+
+          <rect x="350" y="64" width="210" height="104" rx="10" fill="#F1EFE8" stroke="#B4B2A9"/>
+          <text x="364" y="94" font-size="12.5" font-weight="500" fill="#444441">预处理</text>
+          <text x="364" y="118" font-size="10.5" fill="#5F5E5A">逐行取 X[i]</text>
+          <text x="364" y="136" font-size="10.5" fill="#5F5E5A">无需归一化</text>
+          <text x="364" y="154" font-size="10.5" fill="#888780">纯 numpy 切片</text>
+
+          <rect x="680" y="64" width="210" height="104" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="694" y="94" font-size="12.5" font-weight="500" fill="#26215C">OM 推理</text>
+          <text x="694" y="118" font-size="10.5" fill="#534AB7">mlp_fraud.om</text>
+          <text x="694" y="136" font-size="10.5" fill="#534AB7">29 → 64 → 32 → 1</text>
+          <text x="694" y="154" font-size="10.5" fill="#7F77DD">1 次 execute / 样本</text>
+
+          <rect x="1010" y="64" width="210" height="104" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="1024" y="94" font-size="12.5" font-weight="500" fill="#04342C">后处理 + 输出</text>
+          <text x="1024" y="118" font-size="10.5" fill="#0F6E56">sigmoid → p ≥ 0.99</text>
+          <text x="1024" y="136" font-size="10.5" fill="#0F6E56">om_test_metrics.json</text>
+          <text x="1024" y="154" font-size="10.5" fill="#1D9E75">AUPRC 0.7764</text>
+
+          <line x1="230" y1="116" x2="342" y2="116" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="560" y1="116" x2="672" y2="116" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="890" y1="116" x2="1002" y2="116" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+
+          <g font-size="10" fill="#6b6b66" text-anchor="middle">
+            <text x="290" y="137">[N, 29] float32</text>
+            <text x="290" y="151">6.1 MB 整批</text>
+            <text x="620" y="137">[1, 29] float32</text>
+            <text x="620" y="151">116 B</text>
+            <text x="950" y="137">[1, 1] float32</text>
+            <text x="950" y="151">4 B · logit</text>
+          </g>
+        </g>
+
+        <!-- ===== 实验二 ===== -->
+        <g font-family="inherit">
+          <text x="20" y="206" font-size="12.5" font-weight="500" fill="#1c1c1a">实验二 · 肺炎 X 光 CNN</text>
+          <text x="166" y="206" font-size="11" fill="#9a9a95">JPEG 图像 → 2 类概率</text>
+
+          <rect x="20" y="254" width="210" height="104" rx="10" fill="#E6F1FB" stroke="#85B7EB"/>
+          <text x="34" y="284" font-size="12.5" font-weight="500" fill="#0C447C">输入数据</text>
+          <text x="34" y="308" font-size="10.5" fill="#185FA5">test/*.jpg（624 张）</text>
+          <text x="34" y="326" font-size="10.5" fill="#185FA5">PNEUMONIA 390</text>
+          <text x="34" y="344" font-size="10.5" fill="#378ADD">NORMAL 234</text>
+
+          <rect x="350" y="254" width="210" height="104" rx="10" fill="#F1EFE8" stroke="#B4B2A9"/>
+          <text x="364" y="284" font-size="12.5" font-weight="500" fill="#444441">预处理</text>
+          <text x="364" y="308" font-size="10.5" fill="#5F5E5A">BGR→RGB · resize 224²</text>
+          <text x="364" y="326" font-size="10.5" fill="#5F5E5A">/255 → 减均值除方差</text>
+          <text x="364" y="344" font-size="10.5" fill="#888780">HWC → CHW</text>
+
+          <rect x="680" y="254" width="210" height="104" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="694" y="284" font-size="12.5" font-weight="500" fill="#26215C">OM 推理</text>
+          <text x="694" y="308" font-size="10.5" fill="#534AB7">cnn_pneumonia_b0.om</text>
+          <text x="694" y="326" font-size="10.5" fill="#534AB7">EfficientNet-B0</text>
+          <text x="694" y="344" font-size="10.5" fill="#7F77DD">输出 2 个 logits</text>
+
+          <rect x="1010" y="254" width="210" height="104" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="1024" y="284" font-size="12.5" font-weight="500" fill="#04342C">后处理 + 输出</text>
+          <text x="1024" y="308" font-size="10.5" fill="#0F6E56">softmax → p[1]</text>
+          <text x="1024" y="326" font-size="10.5" fill="#0F6E56">阈值用 logit 差值</text>
+          <text x="1024" y="344" font-size="10.5" fill="#1D9E75">scores.npz + JSON</text>
+
+          <line x1="230" y1="306" x2="342" y2="306" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="560" y1="306" x2="672" y2="306" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="890" y1="306" x2="1002" y2="306" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+
+          <g font-size="10" fill="#6b6b66" text-anchor="middle">
+            <text x="290" y="327">3 × 224 × 224 uint8</text>
+            <text x="290" y="341">≈ 150 KB / 张</text>
+            <text x="620" y="327">[1, 3, 224, 224] f32</text>
+            <text x="620" y="341">602,112 B</text>
+            <text x="950" y="327">[1, 2] float32</text>
+            <text x="950" y="341">8 B · 2 类 logits</text>
+          </g>
+        </g>
+
+        <!-- ===== 实验三 ===== -->
+        <g font-family="inherit">
+          <text x="20" y="396" font-size="12.5" font-weight="500" fill="#1c1c1a">实验三 · YOLOv8n 人员检测</text>
+          <text x="198" y="396" font-size="11" fill="#9a9a95">视频帧 → 检测框</text>
+
+          <rect x="20" y="444" width="210" height="104" rx="10" fill="#E6F1FB" stroke="#85B7EB"/>
+          <text x="34" y="474" font-size="12.5" font-weight="500" fill="#0C447C">输入数据</text>
+          <text x="34" y="498" font-size="10.5" fill="#185FA5">/dev/video2 或 bus.jpg</text>
+          <text x="34" y="516" font-size="10.5" fill="#185FA5">MJPG 1280 × 720 @30fps</text>
+          <text x="34" y="534" font-size="10.5" fill="#378ADD">2.64 MB / 帧</text>
+
+          <rect x="350" y="444" width="210" height="104" rx="10" fill="#F1EFE8" stroke="#B4B2A9"/>
+          <text x="364" y="474" font-size="12.5" font-weight="500" fill="#444441">预处理</text>
+          <text x="364" y="498" font-size="10.5" fill="#5F5E5A">letterbox → 640 × 640</text>
+          <text x="364" y="516" font-size="10.5" fill="#5F5E5A">/255 · HWC → CHW</text>
+          <text x="364" y="534" font-size="10.5" fill="#888780">记录缩放比与 padding</text>
+
+          <rect x="680" y="444" width="210" height="104" rx="10" fill="#EEEDFE" stroke="#AFA9EC"/>
+          <text x="694" y="474" font-size="12.5" font-weight="500" fill="#26215C">OM 推理</text>
+          <text x="694" y="498" font-size="10.5" fill="#534AB7">yolov8n.om</text>
+          <text x="694" y="516" font-size="10.5" fill="#534AB7">3 个尺度拼接输出</text>
+          <text x="694" y="534" font-size="10.5" fill="#7F77DD">1 次 execute / 帧</text>
+
+          <rect x="1010" y="444" width="210" height="104" rx="10" fill="#E1F5EE" stroke="#9FE1CB"/>
+          <text x="1024" y="474" font-size="12.5" font-weight="500" fill="#04342C">后处理 + 输出</text>
+          <text x="1024" y="498" font-size="10.5" fill="#0F6E56">解码 + NMS(IoU 0.45)</text>
+          <text x="1024" y="516" font-size="10.5" fill="#0F6E56">只保留 person 类</text>
+          <text x="1024" y="534" font-size="10.5" fill="#1D9E75">检测图 / MJPEG 流</text>
+
+          <line x1="230" y1="496" x2="342" y2="496" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="560" y1="496" x2="672" y2="496" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+          <line x1="890" y1="496" x2="1002" y2="496" stroke="#a9a8a2" stroke-width="1.3" marker-end="url(#ar3)"/>
+
+          <g font-size="10" fill="#6b6b66" text-anchor="middle">
+            <text x="290" y="517">1280 × 720 × 3 uint8</text>
+            <text x="290" y="531">2.64 MB</text>
+            <text x="620" y="517">[1, 3, 640, 640] f32</text>
+            <text x="620" y="531">4,915,200 B</text>
+            <text x="950" y="517">[1, 84, 8400] f32</text>
+            <text x="950" y="531">2,822,400 B</text>
+          </g>
+        </g>
+
+        <g font-family="inherit" font-size="10.5" fill="#9a9a95">
+          <text x="20" y="580">蓝 = 输入　灰 = CPU 上的预处理　紫 = NPU 上的前向　绿 = 后处理与落盘</text>
+          <text x="600" y="580">输入字节量：实验一 116 B → 实验二 602 KB → 实验三 4.9 MB，相差约 4 个数量级</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      图 3 · 每个环节只传「张量」不传「文件」，所以形状与 dtype 必须在交接点对齐——这是 ATC 编译最容易出问题的地方。
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ============ 结果 ============ -->
+<section>
+  <div class="shead"><span class="snum">4</span><h2>实测结果</h2></div>
+  <p class="sdesc">所有数字均来自板端实测，测试集与基线完全一致；括号内为手册基线值。</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">实验一 AUPRC</div><div class="num">0.7764</div><div class="sub">基线 0.7541</div></div>
+    <div class="kpi"><div class="lbl">实验一 ROC-AUC</div><div class="num">0.9710</div><div class="sub">基线 0.9710（一致）</div></div>
+    <div class="kpi"><div class="lbl">实验二 AUPRC</div><div class="num">0.8762</div><div class="sub">基线 0.8775</div></div>
+    <div class="kpi"><div class="lbl">实验三纯推理</div><div class="num">37.8</div><div class="sub">FPS · 26.4 ms/帧</div></div>
+  </div>
+
+  <table style="margin-top:28px">
+    <thead>
+      <tr>
+        <th style="width:16%">实验</th>
+        <th style="width:20%">产物</th>
+        <th class="num" style="width:12%">大小</th>
+        <th>核心指标</th>
+        <th class="num" style="width:16%">延迟</th>
+        <th class="num" style="width:12%">vs 基线</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>一 · 信用卡 MLP</td>
+        <td class="mono">mlp_fraud.om</td>
+        <td class="num">57 KB</td>
+        <td>AUPRC 0.7764 / ROC-AUC 0.9710 / recall 0.765</td>
+        <td class="num">0.207 ms</td>
+        <td class="num ok">+0.022</td>
+      </tr>
+      <tr>
+        <td>二 · 肺炎 CNN</td>
+        <td class="mono">cnn_pneumonia_b0.om</td>
+        <td class="num">14.6 MB</td>
+        <td>AUPRC 0.8762 / ROC-AUC 0.8452 / 最佳 F1 0.873</td>
+        <td class="num">7.17 ms</td>
+        <td class="num ok">−0.0013</td>
+      </tr>
+      <tr>
+        <td>三 · YOLOv8n</td>
+        <td class="mono">yolov8n.om</td>
+        <td class="num">7.2 MB</td>
+        <td>bus.jpg 4/4 人；摄像头只框人无误框</td>
+        <td class="num">25.9 ms</td>
+        <td class="num ok">全中</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>一个必须说清楚的细节：实验二的阈值。</b><br>
+    手册里写的 0.97 不是概率，而是 <span class="mono">logits[1] - logits[0]</span> 的原始差值（无界，可以大于 1）。
+    如果误当成概率去卡 0.97，624 张里只会挑出 5 张阳性，F1 塌到 0.025。
+    按同一尺度复算，OM 在 0.97 处 F1 = 0.838，基线 0.840，只差两张图——这才是「数值等价」的正确验证方式。
+  </div>
+</section>
+
+<!-- ============ 讲解稿 ============ -->
+<section>
+  <div class="shead"><span class="snum">5</span><h2>讲解稿（口语版）</h2></div>
+  <p class="sdesc">按图顺序讲，约 5–6 分钟。<span class="pause">｜</span> 标记处可以停一拍再往下。</p>
+
+  <div class="script">
+    <p><span class="beat gray">开场</span>
+      这块板子是 Orange Pi AI Pro，里面有一颗昇腾 310B4 的 NPU。我们这次做的三件事，本质上是一件事：
+      把三个已经训练好的模型塞进这块板子里跑起来，并且证明它跑出来的结果，和原来在云端 GPU 上是一致的。
+    </p>
+
+    <p><span class="beat">图一</span>
+      先看这张图。横向是五个阶段，纵向是三个实验。
+      三个实验的入口完全不一样：实验一是一张信用卡的 CSV 表，二十八万个数字；实验二是六百多张 X 光片；
+      实验三是现成的 YOLO 权重，我们连训练都没做。
+      <span class="pause">｜</span>
+      但你注意看第三列之后——ONNX、ATC、OM 推理——三条线合流了。后面三步是同一套工具链。
+      这就是昇腾部署的核心：不管你前面是 MLP、CNN 还是 YOLO，最后都得走 ONNX 到 OM 这条路。没有第二条。
+    </p>
+
+    <p><span class="beat">图二</span>
+      第二张是泳道图，看的是「这件事在哪儿干的」。
+      最上面是本地 Windows，我只干两件事：拆包、传文件。第二层是云 GPU，训练早就做完了，这次没重训。
+      第三层是板子的 CPU，活儿最重——校验 ONNX、重新导出、ATC 编译、预处理、后处理，全在这儿。
+      最下面一层才是 NPU，它其实只干一件事：把一个张量吃进去，吐出一个结果。
+      <span class="pause">｜</span>
+      这张图想说明的重点是：NPU 只占整条流水线的一小段，大部分时间花在 CPU 侧的搬运和前后处理上。
+      后面延迟数据也印证了这一点——摄像头端到端 62 毫秒，纯推理只占 26 毫秒，剩下的全是 Python 在搬数据。
+    </p>
+
+    <p><span class="beat">图三</span>
+      第三张是数据流，我把每一步的输入输出都标了形状和字节数。
+      实验一：输入是五万六千多乘二十九的浮点矩阵，预处理只是取其中一行，变成 1 乘 29，一共 116 个字节——非常小。
+      模型输出就一个数，四个字节。所以它快，0.2 毫秒一条。
+      <span class="pause">｜</span>
+      实验二：一张 224 乘 224 的彩色图，进去是六十万个字节。模型吐两个 logits，八个字节。
+      实验三：一帧 720p 是 2.6 兆，letterbox 到 640 之后变成 4.9 兆浮点，模型输出来是 1 乘 84 乘 8400，2.8 兆。
+      数据量比前两个大四个数量级，所以它 26 毫秒一帧，也对得上。
+    </p>
+
+    <p><span class="beat">结果</span>
+      数字方面：实验一 AUPRC 0.776，ROC-AUC 0.971，和基线完全一致。实验二 AUPRC 0.876 对基线 0.878。
+      实验三 bus.jpg 四个人全中，摄像头跑 37.8 帧的纯推理。
+      误差都在千分之一级别，说明量化和编译没有破坏精度。
+      <span class="pause">｜</span>
+      这里有个坑值得单独讲：实验二手册写的阈值 0.97，不是概率，是两个 logit 相减。当成概率用就会全军覆没。
+    </p>
+
+    <p><span class="beat">收尾</span>
+      整个过程踩了八个坑，最有价值的是两个：一是给的 ONNX 缺外部权重文件，ATC 直接失败；
+      二是原来的推理脚本对每条样本起一次子进程，五万多条要跑十六个小时。
+      这两个都不是「板子不行」，是工程细节。
+      <span class="pause">｜</span>
+      最后一句：RKNN 那一路没验，因为手上没有 RK3588 的板子，这一点我不含糊。
+    </p>
+  </div>
+</section>
+
+<footer>
+  板卡 Orange Pi AI Pro（orangepiaipro）· 昇腾 Ascend 310B4 · CANN 8.0.0 · driver 25.2.0 · MindSpore 2.4.10<br>
+  板端路径 <span class="mono">/home/HwHiAiUser/exp/</span>　本地归档 <span class="mono">/opt/orangepi/downloads/</span>（702 文件 / 179 MB，含 sha256 清单）<br>
+  实验脚本、指标 JSON、检测图与逐图得分均已落盘，可按报告第 5 节命令复现。
+</footer>
+
+</div>
+</body>
+</html>

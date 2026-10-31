@@ -1,0 +1,22 @@
+{
+  "om": "mlp_fraud.om",
+  "samples": 56961,
+  "threshold": 0.99,
+  "test_auprc": 0.7763867352117072,
+  "test_roc_auc": 0.9710042432814711,
+  "precision": 0.7978723404255319,
+  "recall": 0.7653061224489796,
+  "f1": 0.7812500000000001,
+  "TN": 56844,
+  "FP": 19,
+  "FN": 23,
+  "TP": 75,
+  "accuracy": 0.9992626533944278,
+  "latency_mean_ms": 0.2074832570702038,
+  "latency_p50_ms": 0.21269499984555296,
+  "latency_p99_ms": 0.2947610000774148,
+  "throughput_per_s": 4496.932796253247,
+  "wall_seconds": 12.666633587999968,
+  "model_load_ms": 1240.506742999969,
+  "timing_note": "单条同步 execute 的墙钟时间，含 Python/运行时封装开销，非纯 NPU 核心耗时"
+}

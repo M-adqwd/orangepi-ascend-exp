@@ -1,0 +1,13 @@
+{
+  "host": "192.168.8.199",
+  "port": 22,
+  "user": "HwHiAiUser",
+  "password": "",
+  "key_file": "",
+  "bridge_port": 7831,
+  "term": "xterm-256color",
+  "width": 200,
+  "height": 60,
+  "auto_sudo": true,
+  "default_timeout": 20
+}

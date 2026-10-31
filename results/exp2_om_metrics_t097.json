@@ -1,0 +1,19 @@
+{
+  "om": "cnn_pneumonia_efficientnet_b0.om",
+  "images": 624,
+  "threshold": 0.97,
+  "accuracy": 0.38301282051282054,
+  "auprc": 0.8761683523319139,
+  "roc_auc": 0.8451676528599605,
+  "precision": 1.0,
+  "recall": 0.01282051282051282,
+  "f1": 0.02531645569620253,
+  "TN": 234,
+  "FP": 0,
+  "FN": 385,
+  "TP": 5,
+  "latency_mean_ms": 7.228183152240065,
+  "latency_p50_ms": 7.222588000104224,
+  "latency_p99_ms": 7.530602999850089,
+  "timing_note": "单张同步 execute 墙钟时间，含预处理后的运行时开销"
+}
